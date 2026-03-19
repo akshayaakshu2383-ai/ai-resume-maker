@@ -17,14 +17,16 @@ export async function POST(req: Request) {
 
     console.log(`Attempting stealth fetch for Video ID: ${videoId}`);
 
-    // Fetch Transcript with Stealth Headers
+    // Fetch Transcript with Mobile Stealth Headers
     const transcriptArray = await YoutubeTranscript.fetchTranscript(videoId, {
       fetch: (url: any, info: any) => fetch(url, {
         ...info,
         headers: {
           ...(info?.headers || {}),
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36',
           'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://www.youtube.com/',
+          'Origin': 'https://www.youtube.com'
         }
       })
     });
