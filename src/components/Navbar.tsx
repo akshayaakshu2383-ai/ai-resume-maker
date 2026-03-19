@@ -11,7 +11,6 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
-    { name: "Resume", href: "/resume", icon: FileText },
     { name: "Notes", href: "/notes", icon: ClipboardList },
     { name: "YouTube", href: "/youtube", icon: Youtube },
     { name: "Jobs", href: "/jobs", icon: Search },

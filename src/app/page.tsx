@@ -5,13 +5,6 @@ import { FileText, ClipboardList, Youtube, Search, CheckCircle2, ArrowRight } fr
 export default function Home() {
   const features = [
     {
-      title: "AI Resume Maker",
-      desc: "Create profession-grade resumes with AI-generated content and instant PDF export.",
-      icon: FileText,
-      color: "from-blue-500 to-indigo-600",
-      link: "/resume",
-    },
-    {
       title: "Notes Saver",
       desc: "Securely store and manage your thoughts with our cloud-synced markdown editor.",
       icon: ClipboardList,
