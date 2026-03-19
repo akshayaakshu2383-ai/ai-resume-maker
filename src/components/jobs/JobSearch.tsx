@@ -8,11 +8,13 @@ export default function JobSearch() {
   const [location, setLocation] = useState("");
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSearch = async () => {
     if (!query) return;
     setLoading(true);
     setJobs([]);
+    setError("");
     try {
       const res = await fetch("/api/job-search", {
         method: "POST",
@@ -22,10 +24,10 @@ export default function JobSearch() {
       if (data.success) {
         setJobs(data.jobs);
       } else {
-        alert(data.error || "Search failed. Firecrawl might be throttled or API key is invalid.");
+        setError(data.error || "Search failed. Check your Firecrawl API key.");
       }
-    } catch (err) {
-      alert("Something went wrong. Please try again.");
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -33,6 +35,11 @@ export default function JobSearch() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
+      {error && (
+        <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-center font-bold">
+          ⚠️ {error}
+        </div>
+      )}
       {/* Search Bar */}
       <div className="bg-slate-900/50 border border-slate-800 p-8 rounded-3xl backdrop-blur-sm shadow-2xl mb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

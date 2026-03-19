@@ -10,6 +10,7 @@ export default function NotesSaver() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
@@ -17,12 +18,15 @@ export default function NotesSaver() {
   }, [session]);
 
   const fetchNotes = async () => {
+    setError("");
     try {
       const res = await fetch("/api/notes");
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to fetch notes");
       setNotes(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setError(err.message);
     } finally {
       setFetching(false);
     }
@@ -36,13 +40,16 @@ export default function NotesSaver() {
         method: "POST",
         body: JSON.stringify({ title, content }),
       });
+      const data = await res.json();
       if (res.ok) {
         setTitle("");
         setContent("");
         fetchNotes();
+      } else {
+        throw new Error(data.error || "Failed to save note");
       }
-    } catch (err) {
-      alert("Failed to save note");
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -69,6 +76,11 @@ export default function NotesSaver() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
+      {error && (
+        <div className="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-center font-bold">
+          ⚠️ {error}
+        </div>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Editor */}
         <div className="lg:col-span-2 space-y-6">

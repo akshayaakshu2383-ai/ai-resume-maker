@@ -15,24 +15,51 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Invalid YouTube URL format" }, { status: 400 });
     }
 
-    console.log(`Attempting stealth fetch for Video ID: ${videoId}`);
+    console.log(`Attempting Manual InnerTube iOS Fetch for: ${videoId}`);
 
-    // Fetch Transcript with Mobile Stealth Headers and Language Targeting
-    const transcriptArray = await YoutubeTranscript.fetchTranscript(videoId, {
-      lang: 'en',
-      fetch: (url: any, info: any) => fetch(url, {
-        ...info,
+    const innerTubeResponse = await fetch("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", {
+        method: "POST",
         headers: {
-          ...(info?.headers || {}),
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Referer': 'https://www.youtube.com/',
-          'Origin': 'https://www.youtube.com'
-        }
-      })
+            "Content-Type": "application/json",
+            "User-Agent": "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X; en_US)",
+            "X-Goog-Api-Format-Version": "2",
+        },
+        body: JSON.stringify({
+            context: {
+                client: {
+                    clientName: "IOS",
+                    clientVersion: "19.29.1",
+                    deviceMake: "Apple",
+                    deviceModel: "iPhone16,2",
+                    osName: "iPhone",
+                    osVersion: "17.5.1",
+                },
+            },
+            videoId: videoId,
+        }),
     });
 
-    const fullText = transcriptArray.map((t) => t.text).join(" ");
+    const playerResponse = await innerTubeResponse.json();
+    const captionTracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+
+    if (!captionTracks || captionTracks.length === 0) {
+        return NextResponse.json({ success: false, error: "No transcripts available for this video (InnerTube Blocked)" }, { status: 404 });
+    }
+
+    // Use the first available track (usually English)
+    const transcriptUrl = captionTracks[0].baseUrl;
+    const transcriptResponse = await fetch(transcriptUrl);
+    const transcriptXml = await transcriptResponse.text();
+
+    // Simple XML to Text parser
+    const fullText = transcriptXml
+        .match(/<text[^>]*>([\s\S]*?)<\/text>/g)
+        ?.map(t => t.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"))
+        .join(" ") || "";
+
+    if (!fullText) {
+        return NextResponse.json({ success: false, error: "Failed to parse transcript content" }, { status: 500 });
+    }
 
     // Summarize with AI
     const prompt = `Please summarize the following YouTube video transcript. Provide a concise overview, key takeaways as bullet points, and a final conclusion.
