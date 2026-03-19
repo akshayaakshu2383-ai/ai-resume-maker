@@ -15,10 +15,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Invalid YouTube URL format" }, { status: 400 });
     }
 
-    console.log(`Fetching transcript for Video ID: ${videoId}`);
+    console.log(`Attempting stealth fetch for Video ID: ${videoId}`);
 
-    // Fetch Transcript using Video ID
-    const transcriptArray = await YoutubeTranscript.fetchTranscript(videoId);
+    // Fetch Transcript with Stealth Headers
+    const transcriptArray = await YoutubeTranscript.fetchTranscript(videoId, {
+      fetch: (url: any, info: any) => fetch(url, {
+        ...info,
+        headers: {
+          ...(info?.headers || {}),
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+        }
+      })
+    });
+
     const fullText = transcriptArray.map((t) => t.text).join(" ");
 
     // Summarize with AI
