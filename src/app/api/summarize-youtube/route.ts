@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 // @ts-ignore
 import { fetchTranscript } from "youtube-transcript/dist/youtube-transcript.esm.js";
+// @ts-ignore
+import TranscriptClient from "youtube-transcript-api";
 import { generateAIContent } from "@/lib/ai";
 
 export async function POST(req: Request) {
@@ -60,14 +62,24 @@ export async function POST(req: Request) {
         }
 
         if (!fullText) {
-            console.log("Transcript proxy failed; using library fallback for videoId", videoId);
+            console.log("Transcript proxy failed; trying alternative library for videoId", videoId);
             try {
-                const transcript = await fetchTranscript(videoId);
-                fullText = transcript.map((t: any) => t.text).join(" ");
-                console.log("Library fallback succeeded");
-            } catch (libError) {
-                console.error("Library fallback failed:", libError.message);
-                throw new Error("Both proxy and library failed to fetch transcript");
+                const client = new TranscriptClient();
+                await client.ready;
+                const transcript = await client.getTranscript(videoId);
+                fullText = transcript.transcript.map((t: any) => t.text).join(" ");
+                console.log("Alternative library succeeded");
+            } catch (altError: any) {
+                console.error("Alternative library failed:", altError.message);
+                console.log("Trying original library fallback");
+                try {
+                    const transcript = await fetchTranscript(videoId);
+                    fullText = transcript.map((t: any) => t.text).join(" ");
+                    console.log("Original library fallback succeeded");
+                } catch (libError: any) {
+                    console.error("Original library fallback failed:", libError.message);
+                    throw new Error("All transcript fetching methods failed due to YouTube restrictions");
+                }
             }
         }
 
