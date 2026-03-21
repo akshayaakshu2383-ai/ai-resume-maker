@@ -1,20 +1,67 @@
-# AI Suite - Setup Guide
+# 🚀 Unified AI Suite
 
-Follow these steps to get your 4-in-1 AI Project Suite running locally or on Vercel.
+![Next.js](https://img.shields.io/badge/Next.js-16.1.7-black?style=for-the-badge&logo=next.js)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)
+![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?style=for-the-badge&logo=supabase)
+![TypeScript](https://img.shields.io/badge/TypeScript-Ready-3178C6?style=for-the-badge&logo=typescript)
 
-## 1. Environment Variables
-Create a `.env.local` file (one has been prepared for you) and fill in the following:
-- `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET`: From [Google Cloud Console](https://console.cloud.google.com/).
-- `NEXT_PUBLIC_SUPABASE_URL` & `NEXT_PUBLIC_SUPABASE_ANON_KEY`: From [Supabase Dashboard](https://supabase.com/).
-- `FIRECRAWL_API_KEY`: From [firecrawl.dev](https://www.firecrawl.dev/).
-- `AI_API_KEY`: Groq or OpenRouter API key.
-- `NEXTAUTH_SECRET`: Generate a random string (e.g., `openssl rand -base64 32`).
+A powerful, 4-in-1 AI productivity suite built with Next.js App Router, Tailwind CSS, and Supabase. Designed to supercharge your career and content consumption.
 
-## 2. Supabase Table Setup
-Run the following SQL in your Supabase SQL Editor to create the necessary tables:
+🔗 **[Live Demo: ai-resume-maker-one.vercel.app](https://ai-resume-maker-one.vercel.app)**
 
+## ✨ Features
+
+1. **📄 AI Resume Builder**
+   - Fill out an intuitive form and let our AI generate professional bullet points.
+   - Instantly export your tailored resume.
+2. **📺 YouTube AI Summarizer**
+   - Skip the fluff. Paste any YouTube URL and get a beautifully formatted Executive Overview, coupled with Key Takeaways (powered by Groq/Llama-3).
+3. **💼 AI Job Search**
+   - Automatically scrape current job listings using Firecrawl and match them instantly against your skills.
+4. **📝 Cloud Notes Saver**
+   - A highly secure, cloud-synced markdown editor to organize your ideas, backed by Supabase Row Level Security (RLS).
+
+## 🛠️ Tech Stack & Integrations
+
+- **Frontend:** Next.js 16, React, Tailwind CSS, Framer Motion, Lucide Icons.
+- **Backend/Database:** Supabase (PostgreSQL), Supabase Auth.
+- **Authentication:** NextAuth.js (Google OAuth).
+- **AI/APIs:** Groq (`llama-3.3-70b-versatile`), Firecrawl (Web Scraping).
+- **Deployment:** Vercel.
+
+## 🚀 Getting Started Locally
+
+### 1. Clone & Install
+```bash
+git clone https://github.com/akshayaakshu2383-ai/ai-resume-maker.git
+cd ai-resume-maker
+npm install
+```
+
+### 2. Environment Variables
+Create a `.env.local` file with the following keys:
+```env
+# AI & Scraping
+AI_API_KEY="your_groq_api_key"
+AI_MODEL="llama-3.3-70b-versatile"
+FIRECRAWL_API_KEY="your_firecrawl_api_key"
+
+# NextAuth & Google 
+GOOGLE_CLIENT_ID="your_google_client_id"
+GOOGLE_CLIENT_SECRET="your_google_client_secret"
+NEXTAUTH_SECRET="random_32_char_string"
+NEXTAUTH_URL="http://localhost:3000"
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your_anon_key"
+SUPABASE_SERVICE_ROLE_KEY="your_service_role_key"
+```
+
+### 3. Supabase Schema
+Before running the app, ensure your Supabase SQL Editor has the necessary tables configured:
 ```sql
--- Notes Table
+-- Create Notes Table & Enable RLS
 CREATE TABLE notes (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID NOT NULL,
@@ -22,24 +69,14 @@ CREATE TABLE notes (
   content TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
-
--- Enable RLS for security
 ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage their own notes" ON notes FOR ALL USING (auth.uid()::text = user_id::text);
 
--- Policy: Users can only see/edit their own notes
-CREATE POLICY "Users can manage their own notes" 
-ON notes FOR ALL 
-USING (auth.uid()::text = user_id::text);
+-- Do the same for `resumes` and `profiles` tables.
 ```
 
-## 3. Running the Project
+### 4. Run Development Server
 ```bash
-npm install
 npm run dev
 ```
-
-## 4. Features Included
-- **AI Resume Maker**: Professional form -> AI Content -> PDF Export.
-- **Notes Saver**: Secure Markdown/Text notes with cloud sync.
-- **AI YouTube Summariser**: Paste link -> Get AI Summary + Takeaways.
-- **Firecrawl AI Jobs**: Scrape job boards -> AI Structured Listing.
+Open [http://localhost:3000](http://localhost:3000) to view the application in your browser.
