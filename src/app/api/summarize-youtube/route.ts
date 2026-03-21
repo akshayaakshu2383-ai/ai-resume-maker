@@ -49,16 +49,25 @@ export async function POST(req: Request) {
         }
 
         let fullText = "";
+        let proxyFetchedText = "";
         try {
             console.log("Trying external proxy...");
             const response = await fetch(`https://youtubetranscript.com/?server_vid2=${videoId}`);
             const transcriptXml = await response.text();
-            fullText = transcriptXml
+            proxyFetchedText = transcriptXml
                 .match(/<text[^>]*>([\s\S]*?)<\/text>/g)
                 ?.map(t => t.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"))
                 .join(" ") || "";
-        } catch (e) {
-            console.log("Proxy failed, falling back to library.");
+
+            if (proxyFetchedText.includes("We're sorry, YouTube is currently blocking us") || proxyFetchedText.toLowerCase().includes("no transcript")) {
+                console.warn("Proxy returned blocked payload, forcing fallback");
+                proxyFetchedText = "";
+            }
+
+            fullText = proxyFetchedText;
+            console.log(`Proxy fetch length: ${fullText.length}`);
+        } catch (e: any) {
+            console.log("Proxy failed, falling back to library.", e?.message || e);
         }
 
         if (!fullText) {
@@ -96,7 +105,15 @@ export async function POST(req: Request) {
         console.error("Error:", error);
         const message = error?.message || error?.toString() || "Failed to process video";
         return NextResponse.json(
-            { success: false, error: `Failed to process video. ${message}` },
+            {
+                success: false,
+                error: `Failed to process video. ${message}`,
+                debug: {
+                    videoId: videoId,
+                    proxyFetchedTextLength: proxyFetchedText?.length ?? 0,
+                    fallbackUsed: fullText?.length > 0 ? "true" : "false"
+                }
+            },
             { status: 500 }
         );
     }
