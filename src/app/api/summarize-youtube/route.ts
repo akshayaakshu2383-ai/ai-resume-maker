@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { YoutubeTranscript } from "youtube-transcript/dist/youtube-transcript.esm.js";
+// @ts-ignore
+import { fetchTranscript } from "youtube-transcript/dist/youtube-transcript.esm.js";
 import { generateAIContent } from "@/lib/ai";
 
 export async function POST(req: Request) {
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
 
         if (!fullText) {
             console.log("Transcript proxy failed; using library fallback for videoId", videoId);
-            const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+            const transcript = await fetchTranscript(videoId);
             fullText = transcript.map((t: any) => t.text).join(" ");
         }
 
