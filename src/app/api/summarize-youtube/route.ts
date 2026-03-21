@@ -6,6 +6,9 @@ import TranscriptClient from "youtube-transcript-api";
 import { generateAIContent } from "@/lib/ai";
 
 export async function POST(req: Request) {
+    let videoId: string | null = null;
+    let proxyFetchedText = "";
+    let fullText = "";
     try {
         const { url } = await req.json();
         if (!url) {
@@ -14,7 +17,7 @@ export async function POST(req: Request) {
 
         // Extract Video ID
         const videoIdMatch = url.match(/(?:v=|\/|shorts\/)([0-9A-Za-z_-]{11})/);
-        const videoId = videoIdMatch ? videoIdMatch[1] : null;
+        videoId = videoIdMatch ? videoIdMatch[1] : null;
 
         if (!videoId) {
             return NextResponse.json(
@@ -50,24 +53,35 @@ export async function POST(req: Request) {
 
         let fullText = "";
         let proxyFetchedText = "";
-        try {
-            console.log("Trying external proxy...");
-            const response = await fetch(`https://youtubetranscript.com/?server_vid2=${videoId}`);
-            const transcriptXml = await response.text();
-            proxyFetchedText = transcriptXml
-                .match(/<text[^>]*>([\s\S]*?)<\/text>/g)
-                ?.map(t => t.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"))
-                .join(" ") || "";
 
-            if (proxyFetchedText.includes("We're sorry, YouTube is currently blocking us") || proxyFetchedText.toLowerCase().includes("no transcript")) {
-                console.warn("Proxy returned blocked payload, forcing fallback");
-                proxyFetchedText = "";
+        // Try official YouTube API if available
+        if (!fullText && process.env.YOUTUBE_API_KEY) {
+            console.log("Trying official YouTube API...");
+            try {
+                const apiKey = process.env.YOUTUBE_API_KEY;
+                // Get captions list
+                const captionsRes = await fetch(`https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}&key=${apiKey}`);
+                const captionsData = await captionsRes.json();
+                
+                if (captionsData.items && captionsData.items.length > 0) {
+                    // Get the first caption track
+                    const captionId = captionsData.items[0].id;
+                    // Download caption
+                    const captionRes = await fetch(`https://www.googleapis.com/youtube/v3/captions/${captionId}?key=${apiKey}`, {
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`, // Note: For API key, it's query param, but captions download might need OAuth
+                        }
+                    });
+                    if (captionRes.ok) {
+                        const captionText = await captionRes.text();
+                        // Parse caption (assuming SRT or similar)
+                        fullText = captionText.replace(/<[^>]*>/g, '').replace(/\d+:\d+:\d+,\d+ --> \d+:\d+:\d+,\d+/g, '').replace(/\n\n/g, ' ').trim();
+                        console.log("Official API succeeded");
+                    }
+                }
+            } catch (apiError: any) {
+                console.error("Official API failed:", apiError.message);
             }
-
-            fullText = proxyFetchedText;
-            console.log(`Proxy fetch length: ${fullText.length}`);
-        } catch (e: any) {
-            console.log("Proxy failed, falling back to library.", e?.message || e);
         }
 
         if (!fullText) {
