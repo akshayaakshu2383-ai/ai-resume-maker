@@ -61,8 +61,14 @@ export async function POST(req: Request) {
 
         if (!fullText) {
             console.log("Transcript proxy failed; using library fallback for videoId", videoId);
-            const transcript = await fetchTranscript(videoId);
-            fullText = transcript.map((t: any) => t.text).join(" ");
+            try {
+                const transcript = await fetchTranscript(videoId);
+                fullText = transcript.map((t: any) => t.text).join(" ");
+                console.log("Library fallback succeeded");
+            } catch (libError) {
+                console.error("Library fallback failed:", libError.message);
+                throw new Error("Both proxy and library failed to fetch transcript");
+            }
         }
 
         console.log(`Fetched transcript length: ${fullText.length} chars`);
