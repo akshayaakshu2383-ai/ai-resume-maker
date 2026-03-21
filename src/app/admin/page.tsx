@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Users, FileText, Activity, ShieldCheck, Loader2, Search, UserMinus } from "lucide-react";
-import { motion } from "framer-motion";
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession({
@@ -15,7 +14,7 @@ export default function AdminDashboard() {
     },
   });
 
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<{id: string; email: string; role: string; resumeCount: number; created_at: string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalUsers: 0, totalResumes: 0 });
 
@@ -58,8 +57,8 @@ export default function AdminDashboard() {
       }));
 
       setUsers(userList);
-    } catch (error: any) {
-      console.error("Error fetching admin data:", error.message || error);
+    } catch (error) {
+      console.error("Error fetching admin data:", error instanceof Error ? error.message : error);
     } finally {
       setLoading(false);
     }
@@ -138,7 +137,7 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
-              {users.map((user, idx) => (
+              {users.map((user) => (
                 <tr key={user.id} className="hover:bg-slate-800/20 transition-colors group">
                   <td className="px-8 py-6 font-medium text-slate-200">{user.email}</td>
                   <td className="px-8 py-6">

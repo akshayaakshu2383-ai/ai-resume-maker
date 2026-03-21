@@ -7,7 +7,7 @@ export default function YoutubeSummarizer() {
   const [url, setUrl] = useState("");
   const [manualTranscript, setManualTranscript] = useState("");
   const [useManual, setUseManual] = useState(false);
-  const [summary, setSummary] = useState<any>(null);
+  const [summary, setSummary] = useState<{ overview: string; conclusion: string; bulletPoints: string[] } | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSummarize = async () => {
@@ -27,7 +27,8 @@ export default function YoutubeSummarizer() {
       }
     } catch (err) {
       console.error('Error details:', err);
-      alert(`Error: ${err?.message || 'Unknown error'}. Try using manual transcript input instead.`);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      alert(`Error: ${errorMessage}. Try using manual transcript input instead.`);
     } finally {
       setLoading(false);
     }
@@ -101,7 +102,7 @@ export default function YoutubeSummarizer() {
               
               <div className="bg-slate-800/30 p-6 rounded-2xl border border-slate-700/50">
                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Conclusion</h3>
-                <p className="text-slate-400 italic">"{summary.conclusion}"</p>
+                <p className="text-slate-400 italic">&quot;{summary.conclusion}&quot;</p>
               </div>
             </div>
 

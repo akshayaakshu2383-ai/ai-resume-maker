@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-// @ts-ignore
+// @ts-expect-error - missing types for this package
 import { fetchTranscript } from "youtube-transcript/dist/youtube-transcript.esm.js";
-// @ts-ignore
+// @ts-expect-error - missing types for this package
 import TranscriptClient from "youtube-transcript-api";
 import { generateAIContent } from "@/lib/ai";
 
@@ -72,8 +72,8 @@ export async function POST(req: Request) {
 
                 fullText = proxyFetchedText;
                 console.log(`Proxy fetch length: ${fullText.length}`);
-            } catch (e: any) {
-                console.log("Proxy failed, falling back to library.", e?.message || e);
+            } catch (e) {
+                console.log("Proxy failed, falling back to library.", e instanceof Error ? e.message : e);
             }
 
             // Try official YouTube API if available
@@ -101,8 +101,8 @@ export async function POST(req: Request) {
                             console.log("Official API succeeded");
                         }
                     }
-                } catch (apiError: any) {
-                    console.error("Official API failed:", apiError.message);
+                } catch (apiError) {
+                    console.error("Official API failed:", apiError instanceof Error ? apiError.message : apiError);
                 }
             }
 
@@ -112,17 +112,17 @@ export async function POST(req: Request) {
                     const client = new TranscriptClient();
                     await client.ready;
                     const transcript = await client.getTranscript(videoId);
-                    fullText = transcript.transcript.map((t: any) => t.text).join(" ");
+                    fullText = transcript.transcript.map((t: {text: string}) => t.text).join(" ");
                     console.log("Alternative library succeeded");
-                } catch (altError: any) {
-                    console.error("Alternative library failed:", altError.message);
+                } catch (altError) {
+                    console.error("Alternative library failed:", altError instanceof Error ? altError.message : altError);
                     console.log("Trying original library fallback");
                     try {
                         const transcript = await fetchTranscript(videoId);
-                        fullText = transcript.map((t: any) => t.text).join(" ");
+                        fullText = transcript.map((t: {text: string}) => t.text).join(" ");
                         console.log("Original library fallback succeeded");
-                    } catch (libError: any) {
-                        console.error("Original library fallback failed:", libError.message);
+                    } catch (libError) {
+                        console.error("Original library fallback failed:", libError instanceof Error ? libError.message : libError);
                         throw new Error("All transcript fetching methods failed due to YouTube restrictions");
                     }
                 }
@@ -138,9 +138,9 @@ export async function POST(req: Request) {
         console.log("Summary generated");
         return NextResponse.json({ success: true, summary });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error("Error:", error);
-        const message = error?.message || error?.toString() || "Failed to process video";
+        const message = error instanceof Error ? error.message : String(error) || "Failed to process video";
         return NextResponse.json(
             {
                 success: false,

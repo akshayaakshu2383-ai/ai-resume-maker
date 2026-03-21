@@ -11,7 +11,8 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }: any) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async signIn({ user, account }: any) {
       if (account.provider === "google") {
         try {
           const { error } = await supabaseAdmin
@@ -29,10 +30,11 @@ export const authOptions = {
       }
       return true;
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async session({ session, token }: any) {
       if (session?.user) {
         // Fetch the actual UUID and role from profiles using the email as the source of truth
-        const { data: profile, error } = await supabaseAdmin
+        const { data: profile } = await supabaseAdmin
           .from("profiles")
           .select("id, role")
           .eq("email", session.user.email)
@@ -40,7 +42,7 @@ export const authOptions = {
         
         if (profile) {
           session.user.id = profile.id;
-          (session.user as any).role = profile.role;
+          (session.user as {role?: string}).role = profile.role;
         } else {
           // Fallback if profile wasn't created yet for some reason
           session.user.id = token.sub;

@@ -42,14 +42,19 @@ export async function POST(req: Request) {
         // Strip markdown code blocks if the AI still includes them
         const cleanedResponse = aiResponse.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
         jobs = JSON.parse(cleanedResponse);
-    } catch (e) {
+    } catch {
         console.error("AI Parse Error:", aiResponse);
         jobs = [];
     }
 
     return NextResponse.json({ success: true, jobs });
-  } catch (error: any) {
-    console.error("Job Search Error:", error.response?.data || error.message);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+        console.error("Job Search Error:", error.response?.data || error.message);
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Job Search Error:", msg);
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

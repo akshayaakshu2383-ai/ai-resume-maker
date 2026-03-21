@@ -6,7 +6,7 @@ import { Search, Briefcase, MapPin, ExternalLink, Loader2, Sparkles, Filter } fr
 export default function JobSearch() {
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("");
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<{ title: string; company: string; location: string; link: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -26,8 +26,8 @@ export default function JobSearch() {
       } else {
         setError(data.error || "Search failed. Check your Firecrawl API key.");
       }
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

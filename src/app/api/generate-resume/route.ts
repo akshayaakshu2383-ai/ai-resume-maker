@@ -36,12 +36,12 @@ export async function POST(req: Request) {
     let parsedContent;
     try {
         parsedContent = JSON.parse(aiResponse);
-    } catch (e) {
+    } catch {
         parsedContent = { rawText: aiResponse };
     }
 
     return NextResponse.json({ success: true, content: parsedContent });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

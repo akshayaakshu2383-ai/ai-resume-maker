@@ -15,7 +15,7 @@ export default function Dashboard() {
     },
   });
 
-  const [resumes, setResumes] = useState<any[]>([]);
+  const [resumes, setResumes] = useState<{ id: string; title: string; updated_at: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function Dashboard() {
         throw new Error(data.error || "Failed to fetch resumes");
       }
       setResumes(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching resumes:", error);
     } finally {
       setLoading(false);
@@ -98,7 +98,7 @@ export default function Dashboard() {
           </div>
           <h2 className="text-2xl font-bold text-white mb-3">No resumes found</h2>
           <p className="text-slate-400 mb-8 max-w-md mx-auto">
-            You haven't created any resumes yet. Start building your professional future today!
+            You haven&apos;t created any resumes yet. Start building your professional future today!
           </p>
           <Link
             href="/resume/new"

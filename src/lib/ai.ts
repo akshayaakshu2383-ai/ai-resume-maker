@@ -32,8 +32,9 @@ export async function generateAIContent(prompt: string, systemPrompt: string = "
 
     const data = await response.json();
     return data.choices[0].message.content;
-  } catch (error: any) {
-    console.error("AI Generation Error:", error.message);
-    throw new Error("Failed to generate AI content: " + error.message);
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("AI Generation Error:", msg);
+    throw new Error("Failed to generate AI content: " + msg);
   }
 }

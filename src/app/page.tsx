@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText, CheckCircle2, ArrowRight, Sparkles, Layout, Download } from "lucide-react";
+import { CheckCircle2, ArrowRight, Sparkles, Layout, Download } from "lucide-react";
 
 export default function Home() {
   const benefits = [

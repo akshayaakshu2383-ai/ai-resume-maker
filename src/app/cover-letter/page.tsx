@@ -28,7 +28,7 @@ export default function CoverLetterGenerator() {
       } else {
         alert("Failed to generate cover letter");
       }
-    } catch (error) {
+    } catch {
       alert("Error generating cover letter");
     } finally {
       setLoading(false);

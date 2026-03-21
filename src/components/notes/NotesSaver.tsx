@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 
 export default function NotesSaver() {
   const { data: session } = useSession();
-  const [notes, setNotes] = useState<any[]>([]);
+  const [notes, setNotes] = useState<{ id: string; title: string; content: string; created_at: string }[]>([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,9 +24,9 @@ export default function NotesSaver() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch notes");
       setNotes(data);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setFetching(false);
     }
@@ -48,8 +48,8 @@ export default function NotesSaver() {
       } else {
         throw new Error(data.error || "Failed to save note");
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -60,6 +60,7 @@ export default function NotesSaver() {
       await fetch(`/api/notes?id=${id}`, { method: "DELETE" });
       setNotes(notes.filter(n => n.id !== id));
     } catch (err) {
+      console.error("Failed to delete note", err);
       alert("Failed to delete note");
     }
   };
