@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { YoutubeTranscript } from "youtube-transcript";
+import { YoutubeTranscript } from "youtube-transcript/dist/youtube-transcript.esm.js";
 import { generateAIContent } from "@/lib/ai";
 
 export async function POST(req: Request) {
@@ -59,17 +59,25 @@ export async function POST(req: Request) {
         }
 
         if (!fullText) {
+            console.log("Transcript proxy failed; using library fallback for videoId", videoId);
             const transcript = await YoutubeTranscript.fetchTranscript(videoId);
             fullText = transcript.map((t: any) => t.text).join(" ");
         }
 
+        console.log(`Fetched transcript length: ${fullText.length} chars`);
+        if (!fullText) {
+            throw new Error("No transcript found for this video.");
+        }
+
         const summary = await generateSummary(fullText);
+        console.log("Summary generated");
         return NextResponse.json({ success: true, summary });
 
     } catch (error: any) {
         console.error("Error:", error);
+        const message = error?.message || error?.toString() || "Failed to process video";
         return NextResponse.json(
-            { success: false, error: "Failed to process video. Try another one." },
+            { success: false, error: `Failed to process video. ${message}` },
             { status: 500 }
         );
     }
