@@ -43,3 +43,6 @@ next-env.d.ts
 # local test scripts
 test_supabase.mjs
 test_admin.mjs
+
+.vercel
+.env*.local

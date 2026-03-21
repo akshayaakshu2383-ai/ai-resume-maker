@@ -1,6 +1,11 @@
 export async function generateAIContent(prompt: string, systemPrompt: string = "You are a professional resume writer and career coach.") {
   const apiKey = process.env.AI_API_KEY;
-  const baseUrl = "https://api.groq.com/openai/v1/chat/completions"; // Defaulting to Groq
+  const baseUrl = "https://api.groq.com/openai/v1/chat/completions"; // Using Groq API
+
+  // Check if we have a valid API key
+  if (!apiKey || apiKey === "PASTE_API_KEY_HERE") {
+    throw new Error("AI API key not configured. Please set AI_API_KEY in environment variables.");
+  }
 
   try {
     const response = await fetch(baseUrl, {
@@ -21,13 +26,14 @@ export async function generateAIContent(prompt: string, systemPrompt: string = "
 
     if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || "AI fetch failed");
+        console.error("API Error:", errorData);
+        throw new Error(errorData.error?.message || `API request failed: ${response.status}`);
     }
 
     const data = await response.json();
     return data.choices[0].message.content;
   } catch (error: any) {
     console.error("AI Generation Error:", error.message);
-    throw new Error("Failed to generate AI content");
+    throw new Error("Failed to generate AI content: " + error.message);
   }
 }

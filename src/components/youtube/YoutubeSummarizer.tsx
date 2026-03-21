@@ -5,17 +5,19 @@ import { Youtube, Sparkles, Loader2, Play, CheckCircle2, ChevronRight } from "lu
 
 export default function YoutubeSummarizer() {
   const [url, setUrl] = useState("");
+  const [manualTranscript, setManualTranscript] = useState("");
+  const [useManual, setUseManual] = useState(false);
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSummarize = async () => {
-    if (!url) return;
+    if (!url && !manualTranscript) return;
     setLoading(true);
     setSummary(null);
     try {
       const res = await fetch("/api/summarize-youtube", {
         method: "POST",
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, manualTranscript }),
       });
       const data = await res.json();
       if (data.success) {
@@ -50,13 +52,34 @@ export default function YoutubeSummarizer() {
           </div>
           <button
             onClick={handleSummarize}
-            disabled={loading || !url}
+            disabled={loading || (!url && !manualTranscript)}
             className="px-8 py-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 transition-all font-bold flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-red-500/20 whitespace-nowrap"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
             {loading ? "Summarizing..." : "Get AI Summary"}
           </button>
         </div>
+        
+        <div className="mt-6">
+          <label className="flex items-center gap-2 text-sm text-slate-400">
+            <input
+              type="checkbox"
+              checked={useManual}
+              onChange={(e) => setUseManual(e.target.checked)}
+              className="rounded"
+            />
+            Or paste transcript manually (if auto-fetch fails)
+          </label>
+          {useManual && (
+            <textarea
+              placeholder="Paste the video transcript here..."
+              className="w-full mt-4 bg-slate-800/50 border border-slate-700 rounded-2xl p-4 focus:outline-none focus:border-red-500/50 transition-all text-lg min-h-[200px]"
+              value={manualTranscript}
+              onChange={(e) => setManualTranscript(e.target.value)}
+            />
+          )}
+        </div>
+        
         <p className="mt-4 text-xs text-slate-500 flex items-center gap-2">
             <CheckCircle2 className="w-3 h-3" /> Works best with educational, tech, and long-form videos.
         </p>

@@ -14,9 +14,9 @@ const Navbar = () => {
   const isAdmin = session?.user?.email === "akshayaakshu2383@gmail.com";
 
   const navLinks = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "My Resumes", href: "/dashboard", icon: FileText },
-    { name: "Cover Letter", href: "/cover-letter", icon: FileText },
+    { name: "Notes", href: "/notes", icon: FileText },
+    { name: "YouTube", href: "/youtube", icon: FileText },
+    { name: "Jobs", href: "/jobs", icon: LayoutDashboard },
   ];
 
   if (isAdmin) {
