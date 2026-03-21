@@ -26,7 +26,8 @@ export default function YoutubeSummarizer() {
         alert(data.error || "Failed to summarize video. Check if the video has transcripts enabled.");
       }
     } catch (err) {
-      alert("Something went wrong. Please check your connection.");
+      console.error('Error details:', err);
+      alert(`Error: ${err?.message || 'Unknown error'}. Try using manual transcript input instead.`);
     } finally {
       setLoading(false);
     }
