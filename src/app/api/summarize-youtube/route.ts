@@ -33,7 +33,8 @@ export async function POST(req: Request) {
             
             let parsedContent;
             try {
-                parsedContent = JSON.parse(aiResponse);
+                const cleanedResponse = aiResponse.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+                parsedContent = JSON.parse(cleanedResponse);
             } catch {
                 parsedContent = { overview: aiResponse, bulletPoints: [], conclusion: "" };
             }
