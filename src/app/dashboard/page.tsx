@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { Plus, FileText, Trash2, Edit3, Loader2, Sparkles, Clock, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
@@ -28,19 +27,15 @@ export default function Dashboard() {
   const fetchResumes = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("resumes")
-        .select("*")
-        .order("updated_at", { ascending: false });
+      const response = await fetch("/api/resumes");
+      const data = await response.json();
 
-      if (error) {
-        console.error("Supabase Error:", error.message, error.hint, error.details);
-        throw error;
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch resumes");
       }
       setResumes(data || []);
     } catch (error: any) {
       console.error("Error fetching resumes:", error);
-      // Optional: set an error state to show in UI
     } finally {
       setLoading(false);
     }
@@ -50,8 +45,15 @@ export default function Dashboard() {
     if (!confirm("Are you sure you want to delete this resume?")) return;
 
     try {
-      const { error } = await supabase.from("resumes").delete().eq("id", id);
-      if (error) throw error;
+      const response = await fetch(`/api/resumes/${id}`, {
+        method: "DELETE"
+      });
+      
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to delete");
+      }
+      
       setResumes(resumes.filter((r) => r.id !== id));
     } catch (error) {
       console.error("Error deleting resume:", error);

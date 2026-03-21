@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import ResumeForm from "@/components/resume/ResumeForm";
 import ResumePreview from "@/components/resume/ResumePreview";
-import { supabase } from "@/lib/supabase";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { Save, Loader2, CheckCircle, ChevronLeft } from "lucide-react";
@@ -31,13 +30,10 @@ export default function EditResume() {
   const fetchResume = async () => {
     try {
       setLoading(true);
-      const { data: resume, error } = await supabase
-        .from("resumes")
-        .select("*")
-        .eq("id", id)
-        .single();
+      const response = await fetch(`/api/resumes/${id}`);
+      const resume = await response.json();
 
-      if (error) throw error;
+      if (!response.ok) throw new Error(resume.error || "Failed to fetch resume");
       
       setData(resume.content);
       setTemplate(resume.template_id);
@@ -66,17 +62,20 @@ export default function EditResume() {
 
     try {
       if (!isAutoSave) setIsSaving(true);
-      const { error } = await supabase
-        .from("resumes")
-        .update({
+      const response = await fetch(`/api/resumes/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           title,
           content: data,
           template_id: template,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id);
+        }),
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to update");
+      }
       
       if (!isAutoSave) {
         setSaveSuccess(true);

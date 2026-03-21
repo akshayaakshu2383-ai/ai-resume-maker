@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, User, Briefcase, GraduationCap, Code, Plus, Trash2, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
+import { Sparkles, User, Briefcase, GraduationCap, Code, Plus, Trash2, ArrowRight, ArrowLeft, Loader2, Layout } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ResumeFormProps {
@@ -17,8 +17,10 @@ export default function ResumeForm({ data, onChange, onStepChange, currentStep }
   const steps = [
     { title: "Personal", icon: User },
     { title: "Experience", icon: Briefcase },
+    { title: "Projects", icon: Layout },
     { title: "Education", icon: GraduationCap },
     { title: "Skills", icon: Code },
+    { title: "Misc.", icon: Sparkles },
   ];
 
   const handleInputChange = (section: string, field: string, value: any, index?: number) => {
@@ -47,33 +49,38 @@ export default function ResumeForm({ data, onChange, onStepChange, currentStep }
     onChange(newData);
   };
 
-  const generateAIContent = async (index: number) => {
+  const generateAIContent = async (index: number, type: string = "resume") => {
     try {
       setIsGenerating(true);
-      const experience = data.experience[index];
+      let bodyData = {};
+      
+      if (type === "resume") {
+        const experience = data.experience[index];
+        bodyData = { type, data: { role: experience.role, company: experience.company, description: experience.description } };
+      } else if (type === "projects") {
+        const project = data.projects[index];
+        bodyData = { type, data: { name: project.name, description: project.description } };
+      } else if (type === "summary") {
+        bodyData = { type, data: { role: data.experience[0]?.role || "Professional", experience: data.experience, skills: data.skills } };
+      }
+
       const response = await fetch("/api/generate-resume", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "resume",
-          data: {
-            role: experience.role,
-            company: experience.company,
-            description: experience.description // raw input
-          }
-        })
+        body: JSON.stringify(bodyData)
       });
 
       const resData = await response.json();
 
       if (resData.success) {
-        const aiPoints = resData.content.experience?.[0]?.bulletPoints || [];
-        if (aiPoints.length > 0) {
-            handleInputChange("experience", "bulletPoints", aiPoints, index);
-        } else if (resData.content.rawText) {
-            // Fallback if AI didn't return JSON
-            const points = resData.content.rawText.split("\n").filter((p: string) => p.trim());
-            handleInputChange("experience", "bulletPoints", points, index);
+        if (type === "resume") {
+          const aiPoints = resData.content.experience?.[0]?.bulletPoints || [];
+          handleInputChange("experience", "bulletPoints", aiPoints.length > 0 ? aiPoints : resData.content.rawText?.split("\n").filter((p: string) => p.trim()) || [], index);
+        } else if (type === "projects") {
+          const aiPoints = Array.isArray(resData.content) ? resData.content : resData.content.rawText?.split("\n").filter((p: string) => p.trim()) || [];
+          handleInputChange("projects", "bulletPoints", aiPoints, index);
+        } else if (type === "summary") {
+          handleInputChange("personalInfo", "summary", resData.content.rawText || resData.content);
         }
       }
     } catch (error: any) {
@@ -160,7 +167,17 @@ export default function ResumeForm({ data, onChange, onStepChange, currentStep }
                 />
               </div>
               <div className="sm:col-span-2 space-y-2">
-                <label className="text-sm font-semibold text-slate-400">Professional Summary</label>
+                <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold text-slate-400">Professional Summary</label>
+                    <button
+                        onClick={() => generateAIContent(0, "summary")}
+                        disabled={isGenerating || !data.experience[0]?.role}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 transition-all text-xs font-bold disabled:opacity-50"
+                    >
+                        {isGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                        Generate with AI
+                    </button>
+                </div>
                 <textarea
                   value={data.personalInfo.summary}
                   onChange={(e) => handleInputChange("personalInfo", "summary", e.target.value)}
@@ -207,7 +224,7 @@ export default function ResumeForm({ data, onChange, onStepChange, currentStep }
                         className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:border-indigo-500 outline-none mb-3"
                       />
                       <button
-                        onClick={() => generateAIContent(idx)}
+                        onClick={() => generateAIContent(idx, "resume")}
                         disabled={isGenerating || !exp.description}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 transition-all text-sm font-bold disabled:opacity-50"
                       >
@@ -228,8 +245,64 @@ export default function ResumeForm({ data, onChange, onStepChange, currentStep }
             </div>
           )}
 
-          {/* STEP 3: EDUCATION */}
+          {/* STEP 3: PROJECTS */}
           {currentStep === 2 && (
+            <div className="space-y-8">
+              {data.projects?.map((proj: any, idx: number) => (
+                <div key={idx} className="p-6 bg-slate-950/50 border border-slate-800 rounded-2xl relative group">
+                  <button
+                    onClick={() => removeItem("projects", idx)}
+                    className="absolute -top-3 -right-3 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      placeholder="Project Name"
+                      value={proj.name}
+                      onChange={(e) => handleInputChange("projects", "name", e.target.value, idx)}
+                      className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:border-indigo-500 outline-none"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Project Link (Optional)"
+                      value={proj.link}
+                      onChange={(e) => handleInputChange("projects", "link", e.target.value, idx)}
+                      className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:border-indigo-500 outline-none"
+                    />
+                    <div className="sm:col-span-2">
+                       <textarea
+                        placeholder="Project description..."
+                        value={proj.description}
+                        onChange={(e) => handleInputChange("projects", "description", e.target.value, idx)}
+                        rows={3}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:border-indigo-500 outline-none mb-3"
+                      />
+                      <button
+                        onClick={() => generateAIContent(idx, "projects")}
+                        disabled={isGenerating || !proj.description}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 transition-all text-sm font-bold disabled:opacity-50"
+                      >
+                        {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        Generate Points with AI
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={() => addItem("projects", { name: "", link: "", duration: "", description: "", bulletPoints: [] })}
+                className="w-full py-4 border-2 border-dashed border-slate-800 rounded-2xl text-slate-500 hover:text-indigo-400 hover:border-indigo-500/50 transition-all flex items-center justify-center gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                Add Project
+              </button>
+            </div>
+          )}
+
+          {/* STEP 4: EDUCATION */}
+          {currentStep === 3 && (
             <div className="space-y-8">
               {data.education.map((edu: any, idx: number) => (
                 <div key={idx} className="p-6 bg-slate-950/50 border border-slate-800 rounded-2xl relative group">
@@ -267,8 +340,8 @@ export default function ResumeForm({ data, onChange, onStepChange, currentStep }
             </div>
           )}
 
-          {/* STEP 4: SKILLS */}
-          {currentStep === 3 && (
+          {/* STEP 5: SKILLS */}
+          {currentStep === 4 && (
             <div className="space-y-8">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-white">Skills</h3>
@@ -350,6 +423,99 @@ export default function ResumeForm({ data, onChange, onStepChange, currentStep }
               </div>
             </div>
           )}
+          {/* STEP 6: MISC (CERTIFICATIONS & LANGUAGES) */}
+          {currentStep === 5 && (
+            <div className="space-y-10">
+              {/* Certifications */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-indigo-400" /> Certifications
+                </h3>
+                <div className="space-y-4">
+                  {data.certifications?.map((cert: any, idx: number) => (
+                    <div key={idx} className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-slate-950/50 border border-slate-800 rounded-xl relative group">
+                      <button
+                        onClick={() => removeItem("certifications", idx)}
+                        className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                      <input
+                        type="text"
+                        placeholder="Certification Name"
+                        value={cert.name}
+                        onChange={(e) => handleInputChange("certifications", "name", e.target.value, idx)}
+                        className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:border-indigo-500 outline-none sm:col-span-1"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Issuer"
+                        value={cert.issuer}
+                        onChange={(e) => handleInputChange("certifications", "issuer", e.target.value, idx)}
+                        className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:border-indigo-500 outline-none sm:col-span-1"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Year"
+                        value={cert.year}
+                        onChange={(e) => handleInputChange("certifications", "year", e.target.value, idx)}
+                        className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:border-indigo-500 outline-none sm:col-span-1"
+                      />
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addItem("certifications", { name: "", issuer: "", year: "" })}
+                    className="w-full py-3 border border-dashed border-slate-800 rounded-xl text-slate-500 hover:text-indigo-400 transition-all flex items-center justify-center gap-2 text-sm"
+                  >
+                    <Plus className="w-4 h-4" /> Add Certification
+                  </button>
+                </div>
+              </div>
+
+              {/* Languages */}
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Layout className="w-5 h-5 text-indigo-400" /> Languages
+                </h3>
+                <div className="flex flex-wrap gap-4">
+                  {data.languages?.map((lang: any, idx: number) => (
+                    <div key={idx} className="flex items-center gap-3 bg-slate-950 border border-slate-800 p-3 rounded-xl group">
+                      <input
+                        type="text"
+                        placeholder="Language"
+                        value={lang.name}
+                        onChange={(e) => handleInputChange("languages", "name", e.target.value, idx)}
+                        className="bg-transparent border-none text-white focus:ring-0 w-24 text-sm font-bold"
+                      />
+                      <select
+                        value={lang.level}
+                        onChange={(e) => handleInputChange("languages", "level", e.target.value, idx)}
+                        className="bg-slate-900 border-none text-xs text-indigo-400 rounded-lg focus:ring-0 cursor-pointer p-1"
+                      >
+                        <option value="Native">Native</option>
+                        <option value="Fluent">Fluent</option>
+                        <option value="Professional">Professional</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Basic">Basic</option>
+                      </select>
+                      <button
+                        onClick={() => removeItem("languages", idx)}
+                        className="text-slate-600 hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addItem("languages", { name: "", level: "Native" })}
+                    className="p-3 border border-dashed border-slate-800 rounded-xl text-slate-500 hover:text-indigo-400 transition-all flex items-center gap-2 text-sm"
+                  >
+                    <Plus className="w-4 h-4" /> Add Language
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
       </AnimatePresence>
 
@@ -363,7 +529,7 @@ export default function ResumeForm({ data, onChange, onStepChange, currentStep }
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
-        {currentStep < 3 ? (
+        {currentStep < 5 ? (
           <button
             onClick={() => onStepChange(currentStep + 1)}
             className="px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20"

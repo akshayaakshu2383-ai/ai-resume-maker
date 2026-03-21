@@ -114,48 +114,91 @@ export default function ResumePreview({ data, template, onTemplateChange }: Resu
                     <p className="text-slate-600 leading-relaxed">{data.personalInfo.summary || "Professional summary goes here..."}</p>
                 </section>
 
-                <section>
-                    <h2 className="text-lg font-bold uppercase tracking-widest text-indigo-600 mb-6">Experience</h2>
-                    <div className="space-y-8">
-                        {data.experience.map((exp: any, i: number) => (
-                            <div key={i} className="relative">
-                                <div className="flex justify-between items-baseline mb-2">
-                                    <h3 className="text-xl font-bold">{exp.role}</h3>
-                                    <span className="text-sm font-medium text-slate-400 uppercase tracking-wider">{exp.duration}</span>
-                                </div>
-                                <p className="text-indigo-500 font-semibold mb-3">{exp.company}</p>
-                                <ul className="list-disc list-outside ml-5 space-y-2 text-slate-600">
-                                    {(exp.bulletPoints?.length > 0 ? exp.bulletPoints : [exp.description]).map((p: string, j: number) => (
-                                        <li key={j}>{p}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                <div className="grid grid-cols-2 gap-12">
+                 <div className="grid grid-cols-2 gap-12">
+                      <section>
+                         <h2 className="text-lg font-bold uppercase tracking-widest text-indigo-600 mb-6">Experience</h2>
+                         <div className="space-y-8">
+                             {data.experience.map((exp: any, i: number) => (
+                                 <div key={i} className="relative">
+                                     <div className="flex justify-between items-baseline mb-2">
+                                         <h3 className="text-xl font-bold">{exp.role}</h3>
+                                         <span className="text-sm font-medium text-slate-400 uppercase tracking-wider">{exp.duration}</span>
+                                     </div>
+                                     <p className="text-indigo-500 font-semibold mb-3">{exp.company}</p>
+                                     <ul className="list-disc list-outside ml-5 space-y-2 text-slate-600">
+                                         {(exp.bulletPoints?.length > 0 ? exp.bulletPoints : [exp.description]).map((p: string, j: number) => (
+                                             <li key={j}>{p}</li>
+                                         ))}
+                                     </ul>
+                                 </div>
+                             ))}
+                         </div>
+                     </section>
+ 
+                     {data.projects?.length > 0 && data.projects[0].name && (
+                         <section>
+                             <h2 className="text-lg font-bold uppercase tracking-widest text-indigo-600 mb-6">Projects</h2>
+                             <div className="space-y-8">
+                                 {data.projects.map((proj: any, i: number) => (
+                                     <div key={i}>
+                                         <div className="flex justify-between items-baseline mb-1">
+                                             <h3 className="text-lg font-bold">{proj.name}</h3>
+                                             {proj.link && <span className="text-xs text-indigo-500 lowercase">{proj.link}</span>}
+                                         </div>
+                                         <ul className="list-disc list-outside ml-5 space-y-1 text-slate-600 text-sm">
+                                             {(proj.bulletPoints?.length > 0 ? proj.bulletPoints : [proj.description]).map((p: string, j: number) => (
+                                                 <li key={j}>{p}</li>
+                                             ))}
+                                         </ul>
+                                     </div>
+                                 ))}
+                             </div>
+                         </section>
+                     )}
+                 </div>
+ 
+                 <div className="grid grid-cols-3 gap-12 border-t pt-10">
+                      <section>
+                         <h2 className="text-lg font-bold uppercase tracking-widest text-indigo-600 mb-4">Education</h2>
+                         <div className="space-y-4">
+                             {data.education.map((edu: any, i: number) => (
+                                 <div key={i}>
+                                     <h3 className="font-bold">{edu.degree}</h3>
+                                     <p className="text-slate-500 text-sm">{edu.school} • {edu.year}</p>
+                                 </div>
+                             ))}
+                         </div>
+                     </section>
                      <section>
-                        <h2 className="text-lg font-bold uppercase tracking-widest text-indigo-600 mb-4">Education</h2>
-                        <div className="space-y-4">
-                            {data.education.map((edu: any, i: number) => (
-                                <div key={i}>
-                                    <h3 className="font-bold">{edu.degree}</h3>
-                                    <p className="text-slate-500 text-sm">{edu.school} • {edu.year}</p>
+                         <h2 className="text-lg font-bold uppercase tracking-widest text-indigo-600 mb-4">Skills</h2>
+                         <div className="flex flex-wrap gap-2">
+                             {data.skills.map((s: string, i: number) => (
+                                 <span key={i} className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-md text-sm text-slate-600 font-medium">{s}</span>
+                             ))}
+                         </div>
+                     </section>
+                     {(data.certifications?.length > 0 || data.languages?.length > 0) && (
+                        <section className="space-y-6">
+                            {data.certifications?.[0]?.name && (
+                                <div>
+                                    <h2 className="text-lg font-bold uppercase tracking-widest text-indigo-600 mb-4">Certifications</h2>
+                                    <div className="space-y-2">
+                                        {data.certifications.map((c: any, i: number) => (
+                                            <p key={i} className="text-sm text-slate-600"><span className="font-bold">{c.name}</span> — {c.issuer}</p>
+                                        ))}
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </section>
-                    <section>
-                        <h2 className="text-lg font-bold uppercase tracking-widest text-indigo-600 mb-4">Skills</h2>
-                        <div className="flex flex-wrap gap-2">
-                            {data.skills.map((s: string, i: number) => (
-                                <span key={i} className="px-3 py-1 bg-slate-50 border border-slate-200 rounded-md text-sm text-slate-600 font-medium">{s}</span>
-                            ))}
-                        </div>
-                    </section>
-                </div>
-             </div>
+                            )}
+                            {data.languages?.[0]?.name && (
+                                <div>
+                                    <h2 className="text-lg font-bold uppercase tracking-widest text-indigo-600 mb-4">Languages</h2>
+                                    <p className="text-sm text-slate-600">{data.languages.map((l: any) => `${l.name} (${l.level})`).join(", ")}</p>
+                                </div>
+                            )}
+                        </section>
+                     )}
+                 </div>
+              </div>
           )}
 
           {template === "modern" && (
@@ -183,15 +226,40 @@ export default function ResumePreview({ data, template, onTemplateChange }: Resu
                      </section>
                      <section>
                         <h2 className="text-lg font-bold mb-6 text-slate-900">Skills</h2>
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-wrap gap-2">
                              {data.skills.map((s: string, i: number) => (
-                                 <div key={i} className="flex items-center gap-2 text-sm text-slate-600">
-                                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+                                 <div key={i} className="px-2 py-1 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-600 shadow-sm">
                                      {s}
                                  </div>
                              ))}
                         </div>
                      </section>
+                     {data.certifications?.[0]?.name && (
+                         <section>
+                            <h2 className="text-lg font-bold mb-4 text-slate-900">Certifications</h2>
+                            <div className="space-y-4">
+                                {data.certifications.map((c: any, i: number) => (
+                                    <div key={i} className="text-slate-600">
+                                        <p className="font-bold text-xs">{c.name}</p>
+                                        <p className="text-[10px]">{c.issuer}</p>
+                                    </div>
+                                ))}
+                            </div>
+                         </section>
+                     )}
+                     {data.languages?.[0]?.name && (
+                         <section>
+                            <h2 className="text-lg font-bold mb-4 text-slate-900">Languages</h2>
+                            <div className="space-y-2">
+                                {data.languages.map((l: any, i: number) => (
+                                    <div key={i} className="flex justify-between text-xs">
+                                        <span className="text-slate-600">{l.name}</span>
+                                        <span className="text-indigo-500 font-bold">{l.level}</span>
+                                    </div>
+                                ))}
+                            </div>
+                         </section>
+                     )}
                 </div>
 
                 {/* Main Content */}
@@ -202,7 +270,7 @@ export default function ResumePreview({ data, template, onTemplateChange }: Resu
                         <p className="mt-4 text-slate-600 leading-relaxed italic">{data.personalInfo.summary}</p>
                      </header>
 
-                     <section>
+                      <section>
                         <h2 className="text-2xl font-bold text-slate-900 border-b-4 border-indigo-500 w-fit pb-1 mb-8">Experience</h2>
                         <div className="space-y-10">
                              {data.experience.map((exp: any, i: number) => (
@@ -224,6 +292,30 @@ export default function ResumePreview({ data, template, onTemplateChange }: Resu
                              ))}
                         </div>
                      </section>
+
+                     {data.projects?.[0]?.name && (
+                        <section>
+                            <h2 className="text-2xl font-bold text-slate-900 border-b-4 border-indigo-500 w-fit pb-1 mb-8">Featured Projects</h2>
+                            <div className="grid grid-cols-1 gap-8">
+                                {data.projects.map((proj: any, i: number) => (
+                                    <div key={i} className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <h3 className="text-lg font-bold">{proj.name}</h3>
+                                            {proj.link && <span className="text-xs font-bold text-indigo-500">{proj.link}</span>}
+                                        </div>
+                                        <ul className="space-y-2 text-slate-600 text-sm">
+                                            {(proj.bulletPoints?.length > 0 ? proj.bulletPoints : [proj.description]).map((p: string, j: number) => (
+                                                <li key={j} className="flex gap-2">
+                                                    <span className="text-indigo-400 font-bold">›</span>
+                                                    {p}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                     )}
                 </div>
              </div>
           )}
@@ -280,10 +372,54 @@ export default function ResumePreview({ data, template, onTemplateChange }: Resu
 
                 <section>
                     <h2 className="text-xl font-bold text-slate-800 border-b-2 border-slate-800 pb-1 mb-6">Technical Skills</h2>
-                    <p className="text-slate-700">
-                         {data.skills.join(", ")}
+                    <p className="text-slate-700 font-medium">
+                         {data.skills.join(" • ")}
                     </p>
                 </section>
+
+                {data.projects?.[0]?.name && (
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-800 border-b-2 border-slate-800 pb-1 mb-6">Key Projects</h2>
+                        <div className="space-y-6">
+                            {data.projects.map((proj: any, i: number) => (
+                                <div key={i} className="pl-4 border-l-2 border-slate-100">
+                                    <div className="flex justify-between font-bold mb-1">
+                                        <span>{proj.name}</span>
+                                        {proj.link && <span className="text-slate-400 text-xs font-normal">{proj.link}</span>}
+                                    </div>
+                                    <ul className="list-disc list-outside ml-4 space-y-1 text-slate-700 text-xs">
+                                        {(proj.bulletPoints?.length > 0 ? proj.bulletPoints : [proj.description]).map((p: string, j: number) => (
+                                            <li key={j}>{p}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                <div className="grid grid-cols-2 gap-10">
+                    {data.certifications?.[0]?.name && (
+                        <section>
+                            <h2 className="text-xl font-bold text-slate-800 border-b-2 border-slate-800 pb-1 mb-4">Certifications</h2>
+                            <div className="space-y-2">
+                                {data.certifications.map((c: any, i: number) => (
+                                    <div key={i} className="text-sm">
+                                        <span className="font-bold">{c.name}</span> <span className="text-slate-500">— {c.issuer}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                    {data.languages?.[0]?.name && (
+                        <section>
+                            <h2 className="text-xl font-bold text-slate-800 border-b-2 border-slate-800 pb-1 mb-4">Languages</h2>
+                            <p className="text-sm text-slate-700">
+                                {data.languages.map((l: any) => `${l.name} (${l.level})`).join(", ")}
+                            </p>
+                        </section>
+                    )}
+                </div>
              </div>
           )}
 
@@ -307,6 +443,29 @@ export default function ResumePreview({ data, template, onTemplateChange }: Resu
                                 ))}
                             </div>
                          </section>
+                         {data.certifications?.[0]?.name && (
+                            <section>
+                                <h2 className="text-xl font-black text-slate-900 border-l-4 border-indigo-600 pl-4 mb-6">Certifications</h2>
+                                <div className="space-y-4">
+                                    {data.certifications.map((c: any, i: number) => (
+                                        <div key={i}>
+                                            <p className="font-bold text-slate-800 text-sm">{c.name}</p>
+                                            <p className="text-slate-500 text-xs">{c.issuer}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                         )}
+                         {data.languages?.[0]?.name && (
+                            <section>
+                                <h2 className="text-xl font-black text-slate-900 border-l-4 border-indigo-600 pl-4 mb-6">Languages</h2>
+                                <div className="flex flex-wrap gap-2">
+                                    {data.languages.map((l: any, i: number) => (
+                                        <span key={i} className="px-3 py-1 border-2 border-indigo-100 rounded-full text-xs font-black text-indigo-500">{l.name} ({l.level})</span>
+                                    ))}
+                                </div>
+                            </section>
+                         )}
                          <section>
                             <h2 className="text-xl font-black text-slate-900 border-l-4 border-indigo-600 pl-4 mb-6">Education</h2>
                             {data.education.map((edu: any, i: number) => (
@@ -345,6 +504,30 @@ export default function ResumePreview({ data, template, onTemplateChange }: Resu
                                  ))}
                             </div>
                          </section>
+
+                          {data.projects?.[0]?.name && (
+                             <section>
+                                <h2 className="text-xl font-black text-slate-900 mb-6">Selected Projects</h2>
+                                <div className="space-y-10">
+                                    {data.projects.map((proj: any, i: number) => (
+                                        <div key={i}>
+                                            <div className="flex justify-between items-center mb-3">
+                                                <h3 className="text-lg font-bold text-indigo-600">{proj.name}</h3>
+                                                {proj.link && <span className="text-[10px] font-black uppercase text-slate-400">{proj.link}</span>}
+                                            </div>
+                                            <ul className="space-y-2 text-slate-600 text-sm">
+                                                {(proj.bulletPoints?.length > 0 ? proj.bulletPoints : [proj.description]).map((p: string, j: number) => (
+                                                    <li key={j} className="flex gap-2">
+                                                        <span className="text-indigo-300">★</span>
+                                                        {p}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                             </section>
+                          )}
                     </div>
                 </div>
              </div>
@@ -370,25 +553,46 @@ export default function ResumePreview({ data, template, onTemplateChange }: Resu
                             <p className="text-lg text-slate-800 leading-relaxed font-serif">{data.personalInfo.summary}</p>
                         </section>
 
-                        <section>
-                            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 mb-8 border-b pb-2">Career History</h2>
-                            <div className="space-y-10">
-                                 {data.experience.map((exp: any, i: number) => (
-                                     <div key={i} className="relative pl-6 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-slate-900 before:rounded-full">
-                                         <div className="flex justify-between font-serif text-xl mb-1">
-                                             <span className="font-bold">{exp.role}</span>
-                                             <span className="text-slate-400 italic text-sm">{exp.duration}</span>
-                                         </div>
-                                         <p className="text-slate-900 font-bold uppercase tracking-widest text-xs mb-4">{exp.company}</p>
-                                         <ul className="list-disc list-outside ml-4 space-y-2 text-slate-700 text-sm leading-relaxed">
-                                              {(exp.bulletPoints?.length > 0 ? exp.bulletPoints : [exp.description]).map((p: string, j: number) => (
-                                                  <li key={j}>{p}</li>
-                                              ))}
-                                         </ul>
-                                     </div>
-                                 ))}
-                            </div>
-                        </section>
+                         <section>
+                             <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 mb-8 border-b pb-2">Career History</h2>
+                             <div className="space-y-10">
+                                  {data.experience.map((exp: any, i: number) => (
+                                      <div key={i} className="relative pl-6 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-slate-900 before:rounded-full">
+                                          <div className="flex justify-between font-serif text-xl mb-1">
+                                              <span className="font-bold">{exp.role}</span>
+                                              <span className="text-slate-400 italic text-sm">{exp.duration}</span>
+                                          </div>
+                                          <p className="text-slate-900 font-bold uppercase tracking-widest text-xs mb-4">{exp.company}</p>
+                                          <ul className="list-disc list-outside ml-4 space-y-2 text-slate-700 text-sm leading-relaxed">
+                                               {(exp.bulletPoints?.length > 0 ? exp.bulletPoints : [exp.description]).map((p: string, j: number) => (
+                                                   <li key={j}>{p}</li>
+                                               ))}
+                                          </ul>
+                                      </div>
+                                  ))}
+                             </div>
+                         </section>
+
+                         {data.projects?.[0]?.name && (
+                            <section>
+                                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 mb-8 border-b pb-2">Key Initiatives</h2>
+                                <div className="space-y-10">
+                                    {data.projects.map((proj: any, i: number) => (
+                                        <div key={i} className="relative pl-6 before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-slate-900 before:rounded-full">
+                                            <div className="flex justify-between font-serif text-lg mb-1 italic">
+                                                <span className="font-bold">{proj.name}</span>
+                                                {proj.link && <span className="text-slate-400 text-[10px] font-sans uppercase font-black">{proj.link}</span>}
+                                            </div>
+                                            <ul className="list-disc list-outside ml-4 space-y-2 text-slate-700 text-sm">
+                                                 {(proj.bulletPoints?.length > 0 ? proj.bulletPoints : [proj.description]).map((p: string, j: number) => (
+                                                     <li key={j}>{p}</li>
+                                                 ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                         )}
                     </div>
                     <div className="col-span-4 space-y-12">
                          <section>
@@ -408,15 +612,43 @@ export default function ResumePreview({ data, template, onTemplateChange }: Resu
                          </section>
 
                          <section className="bg-slate-950 text-white p-6 rounded-2xl">
-                            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-6">Education</h2>
-                            {data.education.map((edu: any, i: number) => (
-                                <div key={i} className="mb-6 last:mb-0">
-                                    <h3 className="font-serif font-bold text-white text-sm">{edu.degree}</h3>
-                                    <p className="text-slate-400 text-xs mt-1">{edu.school}</p>
-                                    <p className="text-indigo-400 text-[10px] font-black uppercase mt-2">{edu.year}</p>
+                             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-6">Education</h2>
+                             {data.education.map((edu: any, i: number) => (
+                                 <div key={i} className="mb-6 last:mb-0">
+                                     <h3 className="font-serif font-bold text-white text-sm">{edu.degree}</h3>
+                                     <p className="text-slate-400 text-xs mt-1">{edu.school}</p>
+                                     <p className="text-indigo-400 text-[10px] font-black uppercase mt-2">{edu.year}</p>
+                                 </div>
+                             ))}
+                          </section>
+
+                          {data.certifications?.[0]?.name && (
+                             <section className="p-6 border-2 border-slate-100 rounded-2xl">
+                                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Credentials</h2>
+                                <div className="space-y-4">
+                                    {data.certifications.map((c: any, i: number) => (
+                                        <div key={i}>
+                                            <p className="text-xs font-black uppercase text-slate-900">{c.name}</p>
+                                            <p className="text-[10px] text-slate-500 italic mt-0.5">{c.issuer}</p>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                         </section>
+                             </section>
+                          )}
+
+                          {data.languages?.[0]?.name && (
+                             <section className="px-6">
+                                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Linguistics</h2>
+                                <div className="space-y-2">
+                                    {data.languages.map((l: any, i: number) => (
+                                        <div key={i} className="flex justify-between items-center text-xs">
+                                            <span className="font-bold text-slate-900">{l.name}</span>
+                                            <span className="text-slate-400 italic">{l.level}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                             </section>
+                          )}
                     </div>
                 </div>
              </div>

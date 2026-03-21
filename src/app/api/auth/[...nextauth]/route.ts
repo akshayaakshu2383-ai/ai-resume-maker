@@ -31,17 +31,19 @@ export const authOptions = {
     },
     async session({ session, token }: any) {
       if (session?.user) {
-        session.user.id = token.sub;
-        
-        // Fetch role from profiles
-        const { data: profile } = await supabaseAdmin
+        // Fetch the actual UUID and role from profiles using the email as the source of truth
+        const { data: profile, error } = await supabaseAdmin
           .from("profiles")
-          .select("role")
-          .eq("id", token.sub)
+          .select("id, role")
+          .eq("email", session.user.email)
           .single();
         
         if (profile) {
+          session.user.id = profile.id;
           (session.user as any).role = profile.role;
+        } else {
+          // Fallback if profile wasn't created yet for some reason
+          session.user.id = token.sub;
         }
       }
       return session;

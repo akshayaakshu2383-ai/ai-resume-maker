@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import ResumeForm from "@/components/resume/ResumeForm";
 import ResumePreview from "@/components/resume/ResumePreview";
-import { supabase } from "@/lib/supabase";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Save, Loader2, CheckCircle, ChevronLeft } from "lucide-react";
@@ -24,6 +23,15 @@ const initialData = {
     { degree: "", school: "", year: "" },
   ],
   skills: [],
+  projects: [
+    { name: "", link: "", duration: "", description: "", bulletPoints: [] },
+  ],
+  certifications: [
+    { name: "", issuer: "", year: "" },
+  ],
+  languages: [
+    { name: "", level: "Native" },
+  ],
 };
 
 export default function NewResume() {
@@ -47,15 +55,33 @@ export default function NewResume() {
   }, [data, title, template]);
 
   const autoSave = async () => {
-    if (!session?.user || isSaving) return;
+    if (!session?.user || isSaving || saveSuccess) return;
     
+    // Check if there's enough data to justify an auto-save
+    const hasInitialData = data.personalInfo.fullName || title !== "Untitled Resume";
+    if (!hasInitialData) return;
+
     try {
       setIsSaving(true);
-      // For NEW resume, we need an ID to update. 
-      // The current implementation inserts a new record every save.
-      // We should probably save once and then update.
-      // I'll stick to manual save for NEW to avoid cluttering DB, 
-      // but I'll implement full auto-save for EDIT.
+      const response = await fetch("/api/resumes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          content: data,
+          template_id: template,
+        }),
+      });
+
+      const newResume = await response.json();
+
+      if (!response.ok) throw new Error(newResume.error || "Auto-save failed");
+      
+      if (newResume && newResume.id) {
+        setSaveSuccess(true);
+        // Redirect to edit page for this new resume so future auto-saves use the update logic
+        router.push(`/resume/edit/${newResume.id}`);
+      }
     } catch (error) {
        console.error("Auto-save error:", error);
     } finally {
@@ -68,23 +94,29 @@ export default function NewResume() {
 
     try {
       setIsSaving(true);
-      const { error } = await supabase.from("resumes").insert({
-        user_id: (session.user as any).id,
-        title,
-        content: data,
-        template_id: template,
+      const response = await fetch("/api/resumes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          content: data,
+          template_id: template,
+        }),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to save");
+      }
       
       setSaveSuccess(true);
       setTimeout(() => {
         setSaveSuccess(false);
         router.push("/dashboard");
       }, 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Save error:", error);
-      alert("Failed to save resume");
+      alert(error.message || "Failed to save resume");
     } finally {
       setIsSaving(false);
     }

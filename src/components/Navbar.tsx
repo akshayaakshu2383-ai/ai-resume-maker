@@ -16,6 +16,7 @@ const Navbar = () => {
   const navLinks = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "My Resumes", href: "/dashboard", icon: FileText },
+    { name: "Cover Letter", href: "/cover-letter", icon: FileText },
   ];
 
   if (isAdmin) {
